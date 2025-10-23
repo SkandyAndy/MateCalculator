@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-M">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mate Koffein Tracker</title>
+    <meta name="theme-color" content="#333">
+
+    <style>
+        :root {
+            --primary-color: #4caf50;
+            --bg-color: #f4f4f4;
+            --card-bg: #ffffff;
+            --text-color: #333;
+            --shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 0;
+            line-height: 1.6;
+        }
+
+        header {
+            background-color: var(--text-color);
+            color: white;
+            padding: 1rem;
+            text-align: center;
+        }
+
+        header h1 {
+            margin: 0;
+            font-size: 1.5rem;
+        }
+
+        .warning {
+            background-color: #ffc;
+            color: #333;
+            padding: 0.5rem;
+            border-radius: 5px;
+            margin-top: 1rem;
+            font-size: 0.9rem;
+        }
+
+        main {
+            padding: 1rem;
+            max-width: 600px;
+            margin: 1rem auto;
+        }
+
+        section {
+            background-color: var(--card-bg);
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+            box-shadow: var(--shadow);
+        }
+
+        h2 {
+            margin-top: 0;
+            border-bottom: 2px solid var(--primary-color);
+            padding-bottom: 0.5rem;
+        }
+
+        select, input[type="time"], button {
+            width: 100%;
+            padding: 0.8rem;
+            margin-top: 0.5rem;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+            font-size: 1rem;
+            box-sizing: border-box; /* Wichtig für 100% Breite */
+        }
+
+        button {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-weight: bold;
+            margin-top: 1rem;
+        }
+
+        button:hover {
+            opacity: 0.9;
+        }
+
+        #clear-btn {
+            background-color: #e74c3c;
+        }
+
+        .stats-card .stat {
+            text-align: center;
+            margin: 1.5rem 0;
+        }
+
+        .stat span {
+            display: block;
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: var(--primary-color);
+        }
+
+        .stat label {
+            font-size: 0.9rem;
+            color: #777;
+        }
+
+        .limit-info {
+            font-size: 0.8rem;
+            text-align: center;
+            color: #555;
+            background-color: #eee;
+            padding: 0.5rem;
+            border-radius: 5px;
+        }
+
+        #drink-list {
+            list-style: none;
+            padding: 0;
+        }
+
+        #drink-list li {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.8rem;
+            border-bottom: 1px solid #eee;
+        }
+
+        #drink-list li:last-child {
+            border-bottom: none;
+        }
+
+        #drink-list .delete-btn {
+            background: none;
+            border: none;
+            color: #e74c3c;
+            font-size: 1.2rem;
+            cursor: pointer;
+            padding: 0.5rem;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Mate Koffein Rechner</h1>
+        <div class="warning">
+            <strong>Disclaimer:</strong> Dies ist keine medizinische Beratung! Nur eine Schätzung. Sprich bei Herzproblemen mit einem Arzt.
+        </div>
+    </header>
+
+    <main>
+        <section class="input-card">
+            <h2>Neues Getränk hinzufügen</h2>
+            <select id="drink-select">
+                <option value="76">Lidl Mate (Freeway, 330ml) - 76 mg</option>
+                <option value="100">Mate (Standard, 500ml) - 100 mg</option>
+            </select>
+            <label for="drink-time">Wann getrunken?</label>
+            <input type="time" id="drink-time">
+            <button id="add-drink-btn">Hinzufügen</button>
+        </section>
+
+        <section class="stats-card">
+            <h2>Dein Status (Heute)</h2>
+            <div class="stat">
+                <span id="total-today">0 mg</span>
+                <label>Gesamt heute konsumiert</label>
+            </div>
+            <div class="stat">
+                <span id="current-caffeine">0.0 mg</span>
+                <label>Geschätzt aktuell im Körper</label>
+            </div>
+            <div class="limit-info">
+                <p>Allg. Richtwert (EFSA) für Gesunde: max. 400 mg / Tag.</p>
+            </div>
+        </section>
+
+        <section class="log-card">
+            <h2>Heutiges Protokoll</h2>
+            <ul id="drink-list">
+                </ul>
+            <button id="clear-btn">Protokoll löschen</button>
+        </section>
+    </main>
+
+    <script>
+        // DOM-Elemente abrufen
+        document.addEventListener('DOMContentLoaded', () => {
+            const addBtn = document.getElementById('add-drink-btn');
+            const clearBtn = document.getElementById('clear-btn');
+            const drinkSelect = document.getElementById('drink-select');
+            const drinkTimeInput = document.getElementById('drink-time');
+            const drinkList = document.getElementById('drink-list');
+            const totalTodayEl = document.getElementById('total-today');
+            const currentCaffeineEl = document.getElementById('current-caffeine');
+
+            // Konstante: Koffein-Halbwertszeit in Stunden (basierend auf Recherche)
+            const CAFFEINE_HALF_LIFE_HOURS = 5;
+
+            // Getränke-Log aus LocalStorage laden oder initialisieren
+            let drinks = JSON.parse(localStorage.getItem('mateDrinks')) || [];
+
+            // --- Event Listeners ---
+
+            // Getränk hinzufügen
+            addBtn.addEventListener('click', () => {
+                const caffeineAmount = parseInt(drinkSelect.value, 10);
+                let timeString = drinkTimeInput.value;
+
+                // Standardzeit (jetzt), falls keine angegeben
+                if (!timeString) {
+                    const now = new Date();
+                    timeString = now.toTimeString().substring(0, 5);
+                }
+
+                const [hours, minutes] = timeString.split(':');
+                const drinkTime = new Date();
+                drinkTime.setHours(hours);
+                drinkTime.setMinutes(minutes);
+                drinkTime.setSeconds(0);
+                drinkTime.setMilliseconds(0);
+                
+                // Prüfen, ob die Zeit in der Zukunft liegt (z.B. gestern 23:00)
+                if (drinkTime > new Date()) {
+                    // Zeit von gestern nehmen
+                    drinkTime.setDate(drinkTime.getDate() - 1);
+                }
+
+                const newDrink = {
+                    id: Date.now(),
+                    time: drinkTime.toISOString(),
+                    amount: caffeineAmount,
+                    name: drinkSelect.options[drinkSelect.selectedIndex].text.split(' - ')[0]
+                };
+
+                drinks.push(newDrink);
+                saveAndRerender();
+            });
+
+            // Protokoll löschen
+            clearBtn.addEventListener('click', () => {
+                if (confirm('Möchtest du wirklich alle Einträge für heute löschen?')) {
+                    drinks = [];
+                    saveAndRerender();
+                }
+            });
+
+            // Einzelnes Getränk löschen (über Event Delegation)
+            drinkList.addEventListener('click', (e) => {
+                if (e.target.classList.contains('delete-btn')) {
+                    const idToDelete = parseInt(e.target.dataset.id, 10);
+                    drinks = drinks.filter(drink => drink.id !== idToDelete);
+                    saveAndRerender();
+                }
+            });
+
+            // --- Funktionen ---
+
+            // Speichern und UI neu rendern
+            function saveAndRerender() {
+                // Nur Einträge von heute behalten
+                filterOldDrinks();
+                // Im LocalStorage speichern
+                localStorage.setItem('mateDrinks', JSON.stringify(drinks));
+                // UI aktualisieren
+                updateUI();
+            }
+            
+            // Alte Einträge (älter als 24h) entfernen
+            function filterOldDrinks() {
+                const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
+                drinks = drinks.filter(drink => new Date(drink.time) > twentyFourHoursAgo);
+            }
+
+            // UI komplett aktualisieren
+            function updateUI() {
+                updateDrinkList();
+                updateStats();
+            }
+
+            // Getränkeliste im HTML aktualisieren
+            function updateDrinkList() {
+                drinkList.innerHTML = ''; // Liste leeren
+                if (drinks.length === 0) {
+                    drinkList.innerHTML = '<li>Noch keine Getränke für heute.</li>';
+                    return;
+                }
+                
+                // Einträge sortieren (neueste zuerst)
+                const sortedDrinks = [...drinks].sort((a, b) => new Date(b.time) - new Date(a.time));
+
+                sortedDrinks.forEach(drink => {
+                    const li = document.createElement('li');
+                    const time = new Date(drink.time).toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' });
+                    li.innerHTML = `
+                        <span><strong>${drink.name}</strong> (${drink.amount} mg) um ${time} Uhr</span>
+                        <button class="delete-btn" data-id="${drink.id}">×</button>
+                    `;
+                    drinkList.appendChild(li);
+                });
+            }
+
+            // Statistiken (Gesamt, Aktuell) berechnen und anzeigen
+            function updateStats() {
+                const totalToday = drinks.reduce((sum, drink) => sum + drink.amount, 0);
+                const currentCaffeine = calculateCurrentCaffeine();
+
+                totalTodayEl.textContent = `${totalToday} mg`;
+                currentCaffeineEl.textContent = `${currentCaffeine.toFixed(1)} mg`;
+            }
+
+            // Die Kernlogik: Aktuelles Koffein berechnen
+            function calculateCurrentCaffeine() {
+                const now = new Date();
+                let totalRemaining = 0;
+
+                drinks.forEach(drink => {
+                    const drinkTime = new Date(drink.time);
+                    // Zeitdifferenz in Stunden
+                    const hoursPassed = (now - drinkTime) / (1000 * 60 * 60);
+
+                    if (hoursPassed < 0) return; // Für den Fall, dass die Zeit falsch eingestellt ist
+
+                    // Halbwertszeit-Formel: M(t) = M0 * (0.5)^(t / T)
+                    // M0 = Anfangsmenge (drink.amount)
+                    // t = vergangene Zeit (hoursPassed)
+                    // T = Halbwertszeit (CAFFEINE_HALF_LIFE_HOURS)
+                    const remaining = drink.amount * Math.pow(0.5, hoursPassed / CAFFEINE_HALF_LIFE_HOURS);
+                    totalRemaining += remaining;
+                });
+
+                return totalRemaining;
+            }
+
+            // --- Initialisierung ---
+            
+            // Aktuelle Zeit in das Input-Feld eintragen
+            drinkTimeInput.value = new Date().toTimeString().substring(0, 5);
+            
+            // Beim Laden der Seite alles einmal rendern
+            saveAndRerender();
+
+            // Die "Aktuell im Körper"-Anzeige jede Minute aktualisieren
+            setInterval(updateStats, 60 * 1000); 
+        });
+
+        // Die Service Worker Registrierung (PWA-Teil) wurde entfernt,
+        // da sie eine separate 'sw.js' Datei benötigt.
+    </script>
+</body>
+</html>
