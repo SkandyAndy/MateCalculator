@@ -2,7 +2,8 @@
     "name": "Mate Koffein Rechner",
     "short_name": "MateRechner",
     "description": "Ein einfacher Rechner, um den Koffeinkonsum von Mate-Getränken zu verfolgen.",
-    "start_url": "/",
+    "start_url": "/MateCalculator/",
+    "scope": "/MateCalculator/"
     "display": "standalone",
     "background_color": "#f4f4f4",
     "theme_color": "#333",

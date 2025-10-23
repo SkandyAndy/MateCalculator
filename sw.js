@@ -1,10 +1,11 @@
-const CACHE_NAME = 'mate-rechner-cache-v1';
-// Wichtig: Füge hier alle deine Dateien hinzu!
+const CACHE_NAME = 'mate-rechner-cache-v1'; // WICHTIG: Nummer erhöhen!
 const urlsToCache = [
-    '/',
-    '/index.html', // oder 'index.html', je nachdem wie deine Datei heisst
-    '/icon-192.png',
-    '/icon-512.png'
+    './', // Bedeutet: "Dieser Ordner"
+    './mate-rechner.html', // (oder index.html)
+    './manifest.json', // Sicher ist sicher, nimm das Manifest mit auf
+    './icon-192.png',
+    './icon-512.png'
+];
     // Wenn du CSS/JS wieder auslagern würdest, kämen sie auch hier rein.
 ];
 
