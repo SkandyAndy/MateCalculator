@@ -1,4 +1,4 @@
-const CACHE_NAME = 'mate-rechner-cache-v2.2'; // WICHTIG: Nummer erhöhen!
+const CACHE_NAME = 'mate-rechner-cache-v2.3'; // WICHTIG: Nummer erhöhen!
 const urlsToCache = [
     './', // Bedeutet: "Dieser Ordner"
     './index.html', // (oder index.html)
