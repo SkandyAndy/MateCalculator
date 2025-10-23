@@ -4,6 +4,7 @@
     <meta charset="UTF-M">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Mate Koffein Tracker v2</title>
+    <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#333">
 
     <style>
@@ -350,8 +351,18 @@
             setInterval(updateStats, 60 * 1000); 
         });
 
-        // Die Service Worker Registrierung (PWA-Teil) wurde entfernt,
-        // da sie eine separate 'sw.js' Datei benötigt.
+        // Service Worker für PWA-Offline-Funktionalität registrieren
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+            navigator.serviceWorker.register('/sw.js')
+                .then(registration => {
+                    console.log('ServiceWorker registriert:', registration);
+                })
+                .catch(error => {
+                    console.log('ServiceWorker Registrierung fehlgeschlagen:', error);
+                });
+            });
+        }
     </script>
 </body>
 </html>
