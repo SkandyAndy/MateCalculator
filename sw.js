@@ -1,7 +1,7 @@
 const CACHE_NAME = 'mate-rechner-cache-v2'; // WICHTIG: Nummer erhöhen!
 const urlsToCache = [
     './', // Bedeutet: "Dieser Ordner"
-    './mate-rechner.html', // (oder index.html)
+    './index.html', // (oder index.html)
     './manifest.json', // Sicher ist sicher, nimm das Manifest mit auf
     './icon-192.png',
     './icon-512.png'
