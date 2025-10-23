@@ -7,7 +7,6 @@ const urlsToCache = [
     './icon-512.png'
 ];
     // Wenn du CSS/JS wieder auslagern würdest, kämen sie auch hier rein.
-];
 
 // Installation: Cache öffnen und die App-Shell-Dateien hinzufügen
 self.addEventListener('install', event => {
